@@ -5,7 +5,9 @@ const protect = (req, res, next) => {
 
   // Check if the Authorization header exists and starts with "Bearer"
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return res.status(401).json({ message: "Access denied. No valid token provided." });
+    return res
+      .status(401)
+      .json({ message: "Access denied. No valid token provided." });
   }
 
   // Extract the token from the Authorization header
@@ -22,7 +24,11 @@ const protect = (req, res, next) => {
     next();
   } catch (error) {
     console.error("JWT verification error:", error.message); // Log any JWT verification errors
-    res.status(401).json({ message: "Invalid or expired token." });
+    res.status(401).json({ 
+      message: error.name === "TokenExpiredError" 
+        ? "Token expired. Please log in again." 
+        : "Invalid token. Please log in again." 
+    });
   }
 };
 

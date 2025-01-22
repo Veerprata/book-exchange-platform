@@ -16,7 +16,12 @@ const ProfilePage = () => {
     const fetchUserData = async () => {
       try {
         setLoading(true);
-        const { data } = await axios.get("/api/users/profile");
+        const token = localStorage.getItem("token"); // Fetch token from localStorage
+        const { data } = await axios.get("/api/users/profile", {
+          headers: {
+            Authorization: `Bearer ${token}`, // Attach token to headers
+          },
+        });
         setUserData(data);
         setFormData({ name: data.name, email: data.email });
         setLoading(false);
@@ -46,7 +51,12 @@ const ProfilePage = () => {
       setLoading(true);
       setError(null);
       setSuccess(null);
-      await axios.put("/api/users/profile", formData);
+      const token = localStorage.getItem("token"); // Fetch token
+      await axios.put("/api/users/profile", formData, {
+        headers: {
+          Authorization: `Bearer ${token}`, // Attach token to headers
+        },
+      });
       setUserData({ ...userData, ...formData });
       setSuccess("Profile updated successfully.");
       setIsEditing(false);
@@ -95,7 +105,7 @@ const ProfilePage = () => {
         {error && <p className="text-center text-red-500">{error}</p>}
         {success && <p className="text-center text-green-500">{success}</p>}
         {userData && (
-          <>
+          <div className="text-center">
             {isEditing ? (
               <div>
                 <label className="block text-sm font-semibold mb-2">Name</label>
@@ -128,7 +138,7 @@ const ProfilePage = () => {
                 </button>
               </div>
             ) : (
-              <div className="text-center">
+              <>
                 <p className="mb-2 text-lg">Name: {userData.name}</p>
                 <p className="mb-4 text-lg">Email: {userData.email}</p>
                 <button
@@ -137,9 +147,9 @@ const ProfilePage = () => {
                 >
                   Edit Profile
                 </button>
-              </div>
+              </>
             )}
-          </>
+          </div>
         )}
       </motion.div>
 
@@ -152,49 +162,15 @@ const ProfilePage = () => {
       >
         <h2 className="text-2xl font-bold mb-6 text-center">Your Books</h2>
         {userData && userData.books && userData.books.length > 0 ? (
-          <motion.ul
-            className="space-y-6"
-            initial="hidden"
-            animate="visible"
-            variants={{
-              hidden: { opacity: 0, y: 20 },
-              visible: {
-                opacity: 1,
-                y: 0,
-                transition: {
-                  delayChildren: 0.3,
-                  staggerChildren: 0.2,
-                },
-              },
-            }}
-          >
+          <motion.ul className="space-y-6">
             {userData.books.map((book) => (
               <motion.li
                 key={book.id}
                 className="bg-gray-100 p-6 rounded-lg shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300"
-                variants={{
-                  hidden: { opacity: 0, y: 20 },
-                  visible: { opacity: 1, y: 0 },
-                }}
               >
                 <h3 className="text-lg font-bold mb-2">{book.title}</h3>
-                <p className="text-sm mb-1">Author: {book.author}</p>
-                <p className="text-sm mb-1">Genre: {book.genre}</p>
-                <p className="text-sm mb-4">Description: {book.description}</p>
-                <div className="flex justify-end space-x-4">
-                  <button
-                    className="bg-[#D4A373] text-white py-1 px-3 rounded hover:bg-[#CBA267] transition-all duration-300"
-                    onClick={() => alert(`Update functionality for ${book.title}`)}
-                  >
-                    Update
-                  </button>
-                  <button
-                    className="bg-red-500 text-white py-1 px-3 rounded hover:bg-red-600 transition-all duration-300"
-                    onClick={() => handleDeleteBook(book.id)}
-                  >
-                    Delete
-                  </button>
-                </div>
+                <p className="text-sm">Author: {book.author}</p>
+                <p className="text-sm">Genre: {book.genre}</p>
               </motion.li>
             ))}
           </motion.ul>
