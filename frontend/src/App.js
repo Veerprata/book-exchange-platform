@@ -9,6 +9,8 @@ import AddBook from "./pages/AddBook";
 import AboutUs from "./pages/AboutUs";
 import ContactUs from "./pages/ContactUs";
 import ProfilePage from "./pages/ProfilePage"; // Import ProfilePage
+import ExchangePage from "./pages/ExchangePage"; // Ensure correct path
+
 
 
 const PageTransitionWrapper = ({ children }) => (
@@ -90,8 +92,16 @@ const AnimatedRoutes = () => {
           <PageTransitionWrapper>
             <ProfilePage />
           </PageTransitionWrapper>
-        }
-       />
+          }
+        />
+        <Route
+         path="/exchange"
+         element={
+          <PageTransitionWrapper>
+            <ExchangePage />
+          </PageTransitionWrapper>
+          }
+        />
       </Routes>
     </AnimatePresence>
   );

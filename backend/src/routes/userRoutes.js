@@ -2,11 +2,10 @@ const express = require('express');
 const User = require('../models/User'); // Import the User model
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken'); // Import JWT
-
+const { protect } = require('../middleware/authMiddleware'); // Import the auth middleware
 
 const router = express.Router();
 
-// Placeholder for user registration
 // User Registration
 router.post('/register', async (req, res) => {
     console.log('POST /register called');
@@ -72,6 +71,47 @@ router.post('/login', async (req, res) => {
         });
     } catch (error) {
         res.status(500).json({ message: 'Server error', error: error.message });
+    }
+});
+
+// Get User Profile
+router.get('/profile', protect, async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id).select('-password'); // Exclude password
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        res.status(200).json(user);
+    } catch (error) {
+        res.status(500).json({ message: 'Failed to fetch profile.', error: error.message });
+    }
+});
+
+// Update User Profile
+router.put('/profile', protect, async (req, res) => {
+    try {
+        const { name, email } = req.body;
+        const user = await User.findById(req.user.id);
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Update fields if provided
+        if (name) user.name = name;
+        if (email) user.email = email;
+
+        const updatedUser = await user.save();
+        res.status(200).json({
+            message: 'Profile updated successfully!',
+            user: {
+                id: updatedUser._id,
+                name: updatedUser.name,
+                email: updatedUser.email,
+            },
+        });
+    } catch (error) {
+        res.status(500).json({ message: 'Failed to update profile.', error: error.message });
     }
 });
 

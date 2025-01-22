@@ -7,6 +7,8 @@ const User = require('./models/User');
 const Book = require('./models/Book');
 const userRoutes = require('./routes/userRoutes');
 const bookRoutes = require('./routes/bookRoutes');
+const exchangeRoutes = require("./routes/exchangeRoutes"); // Import exchange routes
+
 
 
 
@@ -27,6 +29,8 @@ console.log('Models loaded successfully');
 
 app.use('/api/users', userRoutes);
 app.use('/api/books', bookRoutes);
+app.use("/api/exchange", exchangeRoutes); // Register exchange routes
+
 
 
 

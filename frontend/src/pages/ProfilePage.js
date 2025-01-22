@@ -1,30 +1,33 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import { motion } from "framer-motion";
 
 const ProfilePage = () => {
-  const [userData, setUserData] = useState({
-    name: "John Doe",
-    email: "john.doe@example.com",
-    books: [
-      {
-        id: 1,
-        title: "Book One",
-        author: "Author A",
-        genre: "Fiction",
-        description: "A great book with amazing insights and storytelling.",
-      },
-      {
-        id: 2,
-        title: "Book Two",
-        author: "Author B",
-        genre: "Non-Fiction",
-        description: "A deep dive into real-world experiences and knowledge.",
-      },
-    ],
-  });
+  const [userData, setUserData] = useState(null);
+  const [formData, setFormData] = useState({ name: "", email: "" });
   const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState({ name: userData.name, email: userData.email });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+
+  useEffect(() => {
+    // Fetch user data on mount
+    const fetchUserData = async () => {
+      try {
+        setLoading(true);
+        const { data } = await axios.get("/api/users/profile");
+        setUserData(data);
+        setFormData({ name: data.name, email: data.email });
+        setLoading(false);
+      } catch (err) {
+        setError("Failed to load user data.");
+        setLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, []);
 
   const handleMouseMove = (event) => {
     setMousePosition({
@@ -38,9 +41,20 @@ const ProfilePage = () => {
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleProfileUpdate = () => {
-    setUserData({ ...userData, ...formData });
-    setIsEditing(false);
+  const handleProfileUpdate = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      setSuccess(null);
+      await axios.put("/api/users/profile", formData);
+      setUserData({ ...userData, ...formData });
+      setSuccess("Profile updated successfully.");
+      setIsEditing(false);
+    } catch (err) {
+      setError("Failed to update profile.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDeleteBook = (bookId) => {
@@ -60,7 +74,6 @@ const ProfilePage = () => {
       }}
       onMouseMove={handleMouseMove}
     >
-      {/* Glowing Title */}
       <motion.h1
         className="text-5xl font-bold text-center text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.8)] mb-12"
         initial={{ opacity: 0, y: -50 }}
@@ -78,48 +91,55 @@ const ProfilePage = () => {
         transition={{ duration: 1, ease: "easeOut" }}
       >
         <h2 className="text-3xl font-bold mb-4 text-center">Profile</h2>
-        {isEditing ? (
-          <div>
-            <label className="block text-sm font-semibold mb-2">Name</label>
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border rounded mb-4"
-            />
-            <label className="block text-sm font-semibold mb-2">Email</label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border rounded mb-4"
-            />
-            <button
-              className="bg-[#D4A373] text-white py-2 px-4 rounded hover:bg-[#CBA267] mr-4"
-              onClick={handleProfileUpdate}
-            >
-              Save
-            </button>
-            <button
-              className="bg-gray-300 text-gray-700 py-2 px-4 rounded hover:bg-gray-400"
-              onClick={() => setIsEditing(false)}
-            >
-              Cancel
-            </button>
-          </div>
-        ) : (
-          <div className="text-center">
-            <p className="mb-2 text-lg">Name: {userData.name}</p>
-            <p className="mb-4 text-lg">Email: {userData.email}</p>
-            <button
-              className="bg-[#D4A373] text-white py-2 px-4 rounded hover:bg-[#CBA267] transition-all duration-300"
-              onClick={() => setIsEditing(true)}
-            >
-              Edit Profile
-            </button>
-          </div>
+        {loading && <p className="text-center text-gray-500">Loading...</p>}
+        {error && <p className="text-center text-red-500">{error}</p>}
+        {success && <p className="text-center text-green-500">{success}</p>}
+        {userData && (
+          <>
+            {isEditing ? (
+              <div>
+                <label className="block text-sm font-semibold mb-2">Name</label>
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border rounded mb-4"
+                />
+                <label className="block text-sm font-semibold mb-2">Email</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border rounded mb-4"
+                />
+                <button
+                  className="bg-[#D4A373] text-white py-2 px-4 rounded hover:bg-[#CBA267] mr-4"
+                  onClick={handleProfileUpdate}
+                >
+                  Save
+                </button>
+                <button
+                  className="bg-gray-300 text-gray-700 py-2 px-4 rounded hover:bg-gray-400"
+                  onClick={() => setIsEditing(false)}
+                >
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <div className="text-center">
+                <p className="mb-2 text-lg">Name: {userData.name}</p>
+                <p className="mb-4 text-lg">Email: {userData.email}</p>
+                <button
+                  className="bg-[#D4A373] text-white py-2 px-4 rounded hover:bg-[#CBA267] transition-all duration-300"
+                  onClick={() => setIsEditing(true)}
+                >
+                  Edit Profile
+                </button>
+              </div>
+            )}
+          </>
         )}
       </motion.div>
 
@@ -131,7 +151,7 @@ const ProfilePage = () => {
         transition={{ duration: 1, ease: "easeOut" }}
       >
         <h2 className="text-2xl font-bold mb-6 text-center">Your Books</h2>
-        {userData.books && userData.books.length > 0 ? (
+        {userData && userData.books && userData.books.length > 0 ? (
           <motion.ul
             className="space-y-6"
             initial="hidden"

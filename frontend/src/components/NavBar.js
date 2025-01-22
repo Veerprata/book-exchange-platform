@@ -43,6 +43,14 @@ const Navbar = () => (
         </li>
         <li>
           <Link
+            to="/exchange"
+            className="text-white hover:text-[#e2c5a8] transition-all duration-300 hover:scale-105 uppercase"
+          >
+            EXCHANGE
+          </Link>
+        </li>
+        <li>
+          <Link
             to="/about-us"
             className="text-white hover:text-[#e2c5a8] transition-all duration-300 hover:scale-105 uppercase"
           >
